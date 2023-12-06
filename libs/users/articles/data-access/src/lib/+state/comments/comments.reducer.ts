@@ -3,6 +3,9 @@ import { CommentsActions } from './comments.actions';
 import { LoadingStatus } from '@users/core/data-access';
 import { Comment } from '../../models/user-comment.model';
 import { EntityAdapter, EntityState, createEntityAdapter } from '@ngrx/entity';
+import {map} from "rxjs";
+import {inject} from "@angular/core";
+import {AuthFacade} from "@auth/data-access";
 
 export const commentsFeatureKey = 'comments';
 
@@ -56,9 +59,43 @@ export const commentsFeature = createFeature({
       publishStatus: 'error' as const
     })),
 
-    on(CommentsActions.deleteComment, (state, { id }) => 
+    on(CommentsActions.deleteComment, (state, { id }) =>
       commentsAdapter.removeOne(id, state)
-    )
+    ),
+
+    on(CommentsActions.likeComment, (state, {comment, userId}) =>
+      commentsAdapter.updateOne({id: comment.id,
+        changes: {like_user_ids: [...comment.like_user_ids, userId]} as Partial<Comment>}, state)
+    ),
+
+    on(CommentsActions.likeCommentSuccess, (state, { comment }) =>
+      commentsAdapter.updateOne({id: comment.id, changes: {like_user_ids: comment.like_user_ids} as Partial<Comment>}, state)
+    ),
+
+    on(CommentsActions.unlikeComment, (state, {comment, userId}) =>
+      commentsAdapter.updateOne({id: comment.id, changes: {like_user_ids: [...comment.like_user_ids.filter(el => el != userId)]} as Partial<Comment>}, state)
+    ),
+
+    on(CommentsActions.unlikeCommentSuccess, (state, { comment }) =>
+      commentsAdapter.updateOne({id: comment.id, changes: {like_user_ids: comment.like_user_ids} as Partial<Comment>}, state)
+    ),
+
+    on(CommentsActions.disLikeComment, (state, {comment, userId}) =>
+      commentsAdapter.updateOne({id: comment.id,
+        changes: {dislike_user_ids: [...comment.dislike_user_ids, userId]} as Partial<Comment>}, state)
+    ),
+
+    on(CommentsActions.disLikeCommentSuccess, (state, { comment }) =>
+      commentsAdapter.updateOne({id: comment.id, changes: {dislike_user_ids: comment.dislike_user_ids} as Partial<Comment>}, state)
+    ),
+
+    on(CommentsActions.unDisLikeComment, (state, {comment, userId}) =>
+      commentsAdapter.updateOne({id: comment.id, changes: {dislike_user_ids: [...comment.dislike_user_ids.filter(el => el != userId)]} as Partial<Comment>}, state)
+    ),
+
+    on(CommentsActions.unDisLikeCommentSuccess, (state, { comment }) =>
+      commentsAdapter.updateOne({id: comment.id, changes: {dislike_user_ids: comment.dislike_user_ids} as Partial<Comment>}, state)
+    ),
   )
 });
 

@@ -15,10 +15,13 @@ export const loginEffect$ = createEffect(
     ofType(authActions.login),
     switchMap(
       ({ userData }) =>
-        api.post<SignAuthResponse, SignAuthPayload>('/auth/login', userData)
+        api.post<SignAuthResponse, SignAuthPayload>('/auth/login1', userData)
           .pipe(
             map((res) => {
-              const userEntity = usersDTOAdapter.DTOtoEntity(res.user);
+              console.log(res)
+              const user: any = {};
+              const userEntity = usersDTOAdapter.DTOtoEntity(user);
+              console.log(userEntity)
               const updatedRes = { ...res, user: userEntity };
               return authActions.loginSuccess({ res: updatedRes });
             }),

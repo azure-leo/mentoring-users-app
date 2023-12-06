@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, inject, Input, Output} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Comment } from '../../../../data-access/src';
+import {Comment, CommentsActions} from '../../../../data-access/src';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
@@ -20,6 +20,7 @@ import { PushPipe } from "@ngrx/component";
 import { ArticleCommentComponent } from "./article-comment/article-comment.component";
 import { AuthFacade } from "../../../../../../core/auth/data-access/src";
 import { TranslateModule } from '@ngx-translate/core';
+import {take, withLatestFrom} from "rxjs";
 
 @Component({
   selector: 'article-comments',
@@ -63,4 +64,6 @@ export class ArticleCommentsComponent {
     }
     return;
   }
+
+
 }

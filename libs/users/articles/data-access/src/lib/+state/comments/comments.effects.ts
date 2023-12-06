@@ -18,7 +18,7 @@ export const publishComment$ = createEffect(
     return actions$.pipe(
       ofType(CommentsActions.publishComment),
       withLatestFrom(auth$.user$),
-      switchMap( 
+      switchMap(
         ([{ comment }, user]) => {
           console.log(user);
 
@@ -27,11 +27,12 @@ export const publishComment$ = createEffect(
             name: user.name,
             username: user.username,
             photo: {
-              url: user.photo!.url
+              // url: user.photo!.url
+              url: ""
             }
-            
+
           }
-          
+          console.log('comment in effects', comment)
           return apiService.post<Comment, CreateComment>('/comments', comment).pipe(
             map((comment) => CommentsActions.publishCommentSuccess({ comment : {...comment, author} })),
             catchError((error) => {
@@ -84,4 +85,156 @@ export const deleteComment$ = createEffect(
       )
     )
   }, {functional: true}
+)
+
+
+export const likeComment$ = createEffect(
+  (actions$ = inject(Actions),
+   store = inject(Store),
+   auth$ = inject(AuthFacade),
+   apiService = inject(ApiService)
+  ) => {
+    return actions$.pipe(
+      ofType(CommentsActions.likeComment),
+        withLatestFrom(auth$.user$),
+      switchMap(
+        ([{ comment }, user]) => {
+            console.log(comment)
+
+            const author = {
+                id: user.id,
+                name: user.name,
+                username: user.username,
+                photo: {
+                // url: user.photo!.url
+                  url: ""
+                }
+            }
+
+          const newLikeUserIds = [...comment.like_user_ids];
+          newLikeUserIds.push(user.id);
+
+          return apiService.post<Comment, Comment>(`/comments/${comment.id}`, {...comment, like_user_ids: newLikeUserIds}).pipe(
+            map((comment) => CommentsActions.likeCommentSuccess({ comment: {...comment, author}  })),
+            catchError((error) => {
+              console.error('Error', error);
+              return of(CommentsActions.likeCommentFailed({ error }))
+            })
+          )
+        }
+      )
+    )
+  }, { functional: true }
+)
+
+export const disLikeComment$ = createEffect(
+  (actions$ = inject(Actions),
+   store = inject(Store),
+   auth$ = inject(AuthFacade),
+   apiService = inject(ApiService)
+  ) => {
+    return actions$.pipe(
+      ofType(CommentsActions.disLikeComment),
+      withLatestFrom(auth$.user$),
+      switchMap(
+        ([{ comment }, user]) => {
+          const author = {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            photo: {
+              // url: user.photo!.url
+              url: ""
+            }
+          }
+
+          const newDisLikeUserIds = [...comment.dislike_user_ids];
+          newDisLikeUserIds.push(user.id);
+
+          return apiService.post<Comment, Comment>(`/comments/${comment.id}`, {...comment, dislike_user_ids: newDisLikeUserIds}).pipe(
+            map((comment) => CommentsActions.disLikeCommentSuccess({ comment: {...comment, author}  })),
+            catchError((error) => {
+              console.error('Error', error);
+              return of(CommentsActions.disLikeCommentFailed({ error }))
+            })
+          )
+        }
+      )
+    )
+  }, { functional: true }
+)
+
+export const unlikeComment$ = createEffect(
+  (actions$ = inject(Actions),
+   store = inject(Store),
+   auth$ = inject(AuthFacade),
+   apiService = inject(ApiService)
+  ) => {
+    return actions$.pipe(
+      ofType(CommentsActions.unlikeComment),
+      withLatestFrom(auth$.user$),
+      switchMap(
+        ([{ comment }, user]) => {
+          const author = {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            photo: {
+              url: ""
+            }
+          }
+
+          const newLikeUserIds = [...comment.like_user_ids].filter((el) => {
+            return el != user.id
+          })
+
+          return apiService.post<Comment, Comment>(`/comments/${comment.id}`, {...comment, like_user_ids: newLikeUserIds}).pipe(
+            map((comment) => CommentsActions.unlikeCommentSuccess({ comment: {...comment, author}  })),
+            catchError((error) => {
+              console.error('Error', error);
+              return of(CommentsActions.unlikeCommentFailed({ error }))
+            })
+          )
+        }
+      )
+    )
+  }, { functional: true }
+)
+
+export const unDisLikeComment$ = createEffect(
+  (actions$ = inject(Actions),
+   store = inject(Store),
+   auth$ = inject(AuthFacade),
+   apiService = inject(ApiService)
+  ) => {
+    return actions$.pipe(
+      ofType(CommentsActions.unDisLikeComment),
+      withLatestFrom(auth$.user$),
+      switchMap(
+        ([{ comment }, user]) => {
+          const author = {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            photo: {
+              // url: user.photo!.url
+              url: ""
+            }
+          }
+
+          const newUnDisLikeUserIds = [...comment.dislike_user_ids].filter((el) => {
+            return el != user.id
+          })
+
+          return apiService.post<Comment, Comment>(`/comments/${comment.id}`, {...comment, dislike_user_ids: newUnDisLikeUserIds}).pipe(
+            map((comment) => CommentsActions.unDisLikeCommentSuccess({ comment: {...comment, author}  })),
+            catchError((error) => {
+              console.error('Error', error);
+              return of(CommentsActions.unDisLikeCommentFailed({ error }))
+            })
+          )
+        }
+      )
+    )
+  }, { functional: true }
 )

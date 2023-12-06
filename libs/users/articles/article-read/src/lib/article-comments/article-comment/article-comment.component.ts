@@ -11,6 +11,13 @@ import { PushPipe } from '@ngrx/component';
 import { LanguageSwitchService } from '../../../../../../core/ui/language-switch/src';
 import { Comment } from '../../../../../data-access/src';
 import {RouterLink} from "@angular/router";
+import {CommentsFacade} from "../../../../../data-access/src/lib/+state/comments/comments.facade";
+import {comment} from "postcss";
+import {select, Store} from "@ngrx/store";
+import {selectComments} from "../../../../../data-access/src/lib/+state/comments/comments.selectors";
+import {map, Observable, take} from "rxjs";
+import {AuthFacade} from "../../../../../../../core/auth/data-access/src";
+import * as AuthSelectors from "../../../../../../../core/auth/data-access/src/lib/+state/auth.selectors";
 @Component({
   standalone: true,
   imports: [
@@ -30,22 +37,64 @@ import {RouterLink} from "@angular/router";
   styleUrls: ['./article-comment.component.scss'],
 })
 export class ArticleCommentComponent {
+  public readonly store = inject(Store);
+  public readonly comments$ = this.store.select(selectComments);
+
   private readonly languageService = inject(LanguageSwitchService);
-  public likesCount: number = 0;
-  public disLikesCount: number = 0;
-  public isLikeActive: boolean = false;
-  public isDisLikeActive: boolean = false;
+  private readonly commentsFacade = inject(CommentsFacade);
+  private readonly authFacade = inject(AuthFacade);
 
   @Input({ required: true }) comment!: Comment;
   @Input({required: true}) userId!: number;
 
+  public readonly isCommentLiked$ =
+    this.authFacade.user$.pipe(
+      map((user) => {
+        return this.comment.like_user_ids.indexOf(user.id) >= 0;
+      })
+    )
+
+  public readonly isCommentDisLiked$ =
+    this.authFacade.user$.pipe(
+      map((user) => {
+        return this.comment.dislike_user_ids.indexOf(user.id) >= 0;
+      })
+    )
+
+
   public onThumbUp() {
-    this.likesCount = this.likesCount === 0 ? 1 : 0;
-    this.isLikeActive = !this.isLikeActive;
-  }
+    this.authFacade.user$.pipe(
+      take(1)
+    ).subscribe((user) => {
+      if (this.comment.like_user_ids.indexOf(user.id) >= 0) {
+        this.commentsFacade.unlikeComment(this.comment, user.id)
+      } else {
+        this.isCommentDisLiked$.subscribe( (data) => {
+          if (data) {
+            this.commentsFacade.unDisLikeComment(this.comment, user.id)
+          }
+        })
+        this.commentsFacade.likeComment(this.comment, user.id);
+      }
+    })
+    }
+
+
   public onThumbDown() {
-    this.disLikesCount = this.disLikesCount === 0 ? 1 : 0;
-    this.isDisLikeActive = !this.isDisLikeActive;
+    this.authFacade.user$.pipe(
+      take(1)
+    ).subscribe((user) => {
+      if (this.comment.dislike_user_ids.indexOf(user.id) >= 0) {
+        this.commentsFacade.unDisLikeComment(this.comment, user.id)
+      } else {
+        this.isCommentLiked$.subscribe( (data) => {
+          if (data) {
+            this.commentsFacade.unlikeComment(this.comment, user.id)
+          }
+        })
+        this.commentsFacade.disLikeComment(this.comment, user.id)
+      }
+    })
   }
 
   public get avatarSrc(): string {
@@ -54,10 +103,4 @@ export class ArticleCommentComponent {
       : 'assets/img/1.png';
   }
 
-  public get isLikesExists(): boolean {
-    return this.likesCount > 0;
-  }
-  public get isDisLikesExists(): boolean {
-    return this.disLikesCount > 0;
-  }
 }

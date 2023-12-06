@@ -17,17 +17,18 @@
   <mat-card-content>{{ comment.text }}</mat-card-content>
   <mat-card-actions>
     <button mat-icon-button (click)="onThumbUp()">
-      <mat-icon [class.like-active]="isLikeActive" class="thum-up-icon"
+      <mat-icon [class.like-active]="isCommentLiked$ | async" class="thumb-up-icon"
         >thumb_up</mat-icon
       >
     </button>
-    <span class="likes-count" *ngIf="isLikesExists">{{ likesCount }}</span>
+    <span class="likes-count" >{{ comment.like_user_ids.length }}</span>
 
     <button mat-icon-button (click)="onThumbDown()">
-      <mat-icon [class.like-active]="isDisLikeActive" class="thum-up-icon"
+      <mat-icon [class.like-active]="isCommentDisLiked$ | async" class="thumb-up-icon"
         >thumb_down</mat-icon
       >
     </button>
-    <span class="likes-count" *ngIf="isDisLikesExists">{{ disLikesCount }}</span>
+<!--    <span class="likes-count" *ngIf="isDisLikesExists">{{ disLikesCount }}</span>-->
+    <span class="likes-count" >{{ comment.dislike_user_ids.length }}</span>
   </mat-card-actions>
 </mat-card>

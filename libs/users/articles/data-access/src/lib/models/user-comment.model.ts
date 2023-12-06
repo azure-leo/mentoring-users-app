@@ -12,4 +12,6 @@ export interface Comment {
   },
   text: string
   created_at: Date,
+  like_user_ids: number[],
+  dislike_user_ids: number[]
 }

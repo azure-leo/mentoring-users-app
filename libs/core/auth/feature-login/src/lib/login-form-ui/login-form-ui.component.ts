@@ -40,6 +40,9 @@ export class LoginFormUiComponent {
   private readonly languageSwitchService = inject(LanguageSwitchService);
   public readonly selectedLanguage$ = this.languageSwitchService.selectedLanguage$;
 
+  private readonly myEmail: string = "";
+  private readonly myPassword : string = "";
+
   public formGroup = new FormBuilder().group({
     email: new FormControl('admin@gmail.com', [Validators.required, Validators.email]),
     password: new FormControl('12345', [Validators.required])
@@ -55,6 +58,7 @@ export class LoginFormUiComponent {
         email: this.formGroup.value.email?.trim().toLowerCase(),
         password: this.formGroup.value.password
       }
+      console.log('User Data: ', userData)
       this.login.emit(userData);
     }
   }
